@@ -33,7 +33,7 @@ jobs:
           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
           chmod 600 server.key
           sf org login jwt \
-            --username ${{ secrets.DEVHUB_USERNAME }} \
+            --username ${{ vars.DEVHUB_USERNAME }} \
             --jwt-key-file server.key \
             --client-id ${{ secrets.SF_KEY }} \
             --instance-url https://login.salesforce.com
