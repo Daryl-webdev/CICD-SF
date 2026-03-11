@@ -18,9 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Salesforce CLI
-        uses: salesforce/salesforcedx-action@v2
-        with:
-          version: latest
+        run: npm install @salesforce/cli --global
 
       - name: Show CLI version
         run: sf version
