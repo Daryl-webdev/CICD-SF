@@ -46,7 +46,8 @@ jobs:
             --definition-file config/project-scratch-def.json \
             --duration-days 1 \
             --target-dev-hub devhub \
-            --set-default
+            --set-default \
+            --alias ci_org
 
       - name: Push source to scratch org
         run: sf project deploy start --source-dir force-app --wait 10
