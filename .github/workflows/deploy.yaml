@@ -1,0 +1,74 @@
+name: Deploy to Daryl Environment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'force-app/**'
+
+jobs:
+  deploy_daryl:
+    runs-on: ubuntu-latest
+    environment: daryl
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Salesforce CLI
+        uses: salesforcecli/github-action@v2
+
+      - name: Show CLI version
+        run: sf version
+
+      - name: Install sfdx-git-delta
+        run: sf plugins install sfdx-git-delta
+
+      - name: Generate delta
+        run: |
+          set -e
+          mkdir changed-sources
+          sf sgd source delta \
+            --to HEAD \
+            --from origin/main \
+            --output changed-sources \
+            --generate-delta \
+            --source force-app
+
+      - name: Authenticate Org
+        run: |
+          echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
+          chmod 600 server.key
+          sf org login jwt \
+            --username ${{ secrets.SF_USERNAME }} \
+            --jwt-key-file server.key \
+            --client-id ${{ secrets.SF_KEY }} \
+            --instance-url ${{ vars.INSTANCE_URL }} \
+            --alias daryl \
+            --set-default
+
+      - name: Detect changed Apex tests
+        id: tests
+        run: |
+          TESTS=$(find changed-sources -name "*Test.cls" | sed 's#.*/##' | sed 's/.cls//' | paste -sd "," -)
+          echo "tests=$TESTS" >> $GITHUB_OUTPUT
+
+      - name: Deploy delta
+        run: |
+          if [ -d "changed-sources/force-app" ]; then
+            if [ -n "${{ steps.tests.outputs.tests }}" ]; then
+              sf project deploy start \
+                --source-dir changed-sources/force-app \
+                --test-level RunSpecifiedTests \
+                --tests ${{ steps.tests.outputs.tests }} \
+                --wait 30
+            else
+              sf project deploy start \
+                --source-dir changed-sources/force-app \
+                --test-level RunLocalTests \
+                --wait 30
+            fi
+          else
+            echo "No metadata changes detected"

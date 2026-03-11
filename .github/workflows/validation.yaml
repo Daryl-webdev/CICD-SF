@@ -1,0 +1,53 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'force-app/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Salesforce CLI
+        uses: salesforcecli/github-action@v2
+
+      - name: Show CLI version
+        run: sf version
+
+      - name: Install scanner
+        run: sf plugins install @salesforce/sfdx-scanner
+
+      - name: Run static code analysis
+        run: sf scanner run --target force-app
+
+      - name: Authenticate DevHub
+        run: |
+          echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
+          chmod 600 server.key
+          sf org login jwt \
+            --username ${{ secrets.DEVHUB_USERNAME }} \
+            --jwt-key-file server.key \
+            --client-id ${{ secrets.SF_KEY }} \
+            --instance-url https://login.salesforce.com
+
+      - name: Create Scratch Org
+        run: |
+          sf org create scratch \
+            --definition-file config/project-scratch-def.json \
+            --duration-days 1 \
+            --alias ci_org \
+            --set-default
+
+      - name: Push source to scratch org
+        run: sf project deploy start --source-dir force-app --wait 10
+
+      - name: Run Apex tests
+        run: sf apex run test --test-level RunLocalTests --wait 20
