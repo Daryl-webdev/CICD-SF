@@ -37,7 +37,7 @@ jobs:
             --jwt-key-file server.key \
             --client-id ${{ secrets.SF_KEY }} \
             --instance-url https://login.salesforce.com
-            -d
+            --set-default-dev-hub
 
       - name: Create Scratch Org
         run: |
