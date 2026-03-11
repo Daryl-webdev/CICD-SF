@@ -3,6 +3,7 @@ import { LightningElement, api } from "lwc";
 export default class HelloWorld extends LightningElement {
   @api objectApiName;
 
+  //TEST deployment with new code
   get computedClassNames() {
     return [
         "slds-box",
