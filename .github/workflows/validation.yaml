@@ -39,10 +39,17 @@ jobs:
             --instance-url https://login.salesforce.com \
             --set-default-dev-hub \
             --alias devhub
-            
+
       - name: Verify Dev Hub login
         run: sf org list
 
+      - name: Check scratch org JSON
+        run: |
+          echo "File contents:"
+          cat config/project-scratch-def.json
+          echo "File type:"
+          file config/project-scratch-def.json
+          
       - name: Create Scratch Org
         run: |
           sf org create scratch \
