@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Salesforce CLI
-        uses: salesforcecli/github-action@v2
+        uses: salesforcecli/github-action@v1
 
       - name: Show CLI version
         run: sf version
