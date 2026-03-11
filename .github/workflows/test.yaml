@@ -1,4 +1,4 @@
-name: Deploy to sffnoobs environment on push to main
+name: Deploy to daryl environment on push to main
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
       - 'force-app/**'
 
 jobs:
-  Deploy-to-sffnoobs-environment:
+  Deploy-to-daryl-environment:
       runs-on: ubuntu-latest
-      environment: sffnoobs
+      environment: daryl
       steps:
           - uses: actions/setup-node@v3
             with:
