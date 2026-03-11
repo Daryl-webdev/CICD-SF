@@ -37,13 +37,14 @@ jobs:
             --jwt-key-file server.key \
             --client-id ${{ secrets.SF_KEY }} \
             --instance-url https://login.salesforce.com
+            -v devhub
 
       - name: Create Scratch Org
         run: |
           sf org create scratch \
             --definition-file config/project-scratch-def.json \
             --duration-days 1 \
-            -v ci_org \
+            --target-dev-hub devhub \
             --set-default
 
       - name: Push source to scratch org
