@@ -18,7 +18,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install Salesforce CLI
-        uses: salesforcecli/github-action@v1
+        uses: salesforce/salesforcedx-action@v2
+        with:
+          version: latest
 
       - name: Show CLI version
         run: sf version
