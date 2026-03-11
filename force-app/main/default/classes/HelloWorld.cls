@@ -1,5 +1,6 @@
 public with sharing class HelloWorld {
+    private String message;
     public HelloWorld() {
-        //test only
+        this.message = 'Hello, World!';
     }
 }
