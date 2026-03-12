@@ -43,6 +43,9 @@ jobs:
       - name: Verify Dev Hub login
         run: sf org list
 
+      - name: Verify Dev Hub login
+        run: sf org display --target-org devhub
+
       - name: Check scratch org JSON
         run: |
           echo "File contents:"
