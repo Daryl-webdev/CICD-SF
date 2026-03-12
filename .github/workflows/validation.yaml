@@ -39,6 +39,7 @@ jobs:
             --instance-url https://resilient-bear-fqihg6-dev-ed.trailblaze.my.salesforce.com \
             --set-default-dev-hub \
             --alias devhub
+          sleep 10
 
       - name: Verify Dev Hub login
         run: sf org list
