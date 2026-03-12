@@ -36,7 +36,7 @@ jobs:
             --username ${{ vars.SF_USERNAME }} \
             --jwt-key-file server.key \
             --client-id ${{ vars.SF_KEY }} \
-            --instance-url https://resilient-bear-fqihg6-dev-ed.trailblaze.my.salesforce.com \
+            --instance-url https://orgfarm-e355f9709c-dev-ed.develop.my.salesforce-setup.com \
             --set-default-dev-hub \
             --alias devhub
           sleep 40
