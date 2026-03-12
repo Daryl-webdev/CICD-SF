@@ -55,3 +55,7 @@ jobs:
 
       - name: Run Apex tests
         run: sf apex run test --test-level RunRelevantTests --wait 20
+
+      - name: Delete Scratch Org
+        if: always()
+        run: sf org delete scratch -o devhub -p
