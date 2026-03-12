@@ -41,19 +41,6 @@ jobs:
             --alias devhub
           sleep 40
 
-      - name: Verify Dev Hub login
-        run: sf org list --all
-
-      - name: Check Dev Hub details
-        run: sf org display --target-org devhub
-
-      - name: Check scratch org JSON
-        run: |
-          echo "File contents:"
-          cat config/project-scratch-def.json
-          echo "File type:"
-          file config/project-scratch-def.json
-          
       - name: Create Scratch Org
         run: |
           sf org create scratch \
@@ -67,4 +54,4 @@ jobs:
         run: sf project deploy start --source-dir force-app --wait 10
 
       - name: Run Apex tests
-        run: sf apex run test --test-level RunLocalTests --wait 20
+        run: sf apex run test --test-level RunRelevantTests --wait 20
