@@ -36,7 +36,7 @@ jobs:
             --username ${{ secrets.SF_USERNAME }} \
             --jwt-key-file server.key \
             --client-id ${{ secrets.SF_KEY }} \
-            --instance-url https://login.salesforce.com \
+            --instance-url https://resilient-bear-fqihg6-dev-ed.trailblaze.my.salesforce-setup.com \
             --set-default-dev-hub \
             --alias devhub
 
