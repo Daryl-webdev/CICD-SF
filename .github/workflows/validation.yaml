@@ -39,7 +39,6 @@ jobs:
             --instance-url https://orgfarm-e355f9709c-dev-ed.develop.my.salesforce-setup.com \
             --set-default-dev-hub \
             --alias devhub
-          sleep 40
 
       - name: Create Scratch Org
         run: |
@@ -54,7 +53,7 @@ jobs:
         run: sf project deploy start --source-dir force-app --wait 10
 
       - name: Run Apex tests
-        run: sf apex run test --test-level RunRelevantTests --wait 20
+        run: sf apex run test --test-level RunLocalTests --wait 20
 
       - name: Delete Scratch Org
         if: always()
