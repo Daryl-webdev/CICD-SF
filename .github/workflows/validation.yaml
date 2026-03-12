@@ -33,10 +33,10 @@ jobs:
           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
           chmod 600 server.key
           sf org login jwt \
-            --username ${{ secrets.SF_USERNAME }} \
+            --username ${{ vars.SF_USERNAME }} \
             --jwt-key-file server.key \
             --client-id ${{ secrets.SF_KEY }} \
-            --instance-url https://resilient-bear-fqihg6-dev-ed.trailblaze.my.salesforce-setup.com \
+            --instance-url https://resilient-bear-fqihg6-dev-ed.trailblaze.my.salesforce.com \
             --set-default-dev-hub \
             --alias devhub
 
