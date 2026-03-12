@@ -52,6 +52,7 @@ jobs:
             --target-dev-hub devhub \
             --set-default \
             --alias ci_org
+          echo "SCRATCH_ORG_ALIAS=ci_org" >> $GITHUB_ENV
 
       - name: Push source to scratch org
         run: sf project deploy start --source-dir force-app --wait 10
@@ -61,4 +62,11 @@ jobs:
 
       - name: Delete Scratch Org
         if: always()
-        run: sf org delete scratch -o ci_org -p
+        run: |
+          echo "Attempting to delete scratch org..."
+          # Returns 0 if org exists, 1 if not
+          if sf org display --json -o $SCRATCH_ORG_ALIAS > /dev/null 2>&1; then
+            sf org delete scratch -o $SCRATCH_ORG_ALIAS -p || echo "Failed to delete scratch org"
+          else
+            echo "Scratch org not found — skipping delete."
+          fi
