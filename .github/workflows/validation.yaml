@@ -30,12 +30,12 @@ jobs:
 
       - name: Authenticate DevHub
         run: |
-          echo "${{ vars.JWT_SERVER_KEY }}" > server.key
+          echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
           chmod 600 server.key
           sf org login jwt \
             --username ${{ vars.SF_USERNAME }} \
             --jwt-key-file server.key \
-            --client-id ${{ vars.SF_KEY }} \
+            --client-id ${{ secrets.SF_KEY }} \
             --instance-url https://orgfarm-e355f9709c-dev-ed.develop.my.salesforce-setup.com \
             --set-default-dev-hub \
             --alias devhub
