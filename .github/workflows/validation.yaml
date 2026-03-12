@@ -30,12 +30,12 @@ jobs:
 
       - name: Authenticate DevHub
         run: |
-          echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
+          echo "${{ vars.JWT_SERVER_KEY }}" > server.key
           chmod 600 server.key
           sf org login jwt \
             --username ${{ vars.SF_USERNAME }} \
             --jwt-key-file server.key \
-            --client-id ${{ secrets.SF_KEY }} \
+            --client-id ${{ vars.SF_KEY }} \
             --instance-url https://resilient-bear-fqihg6-dev-ed.trailblaze.my.salesforce.com \
             --set-default-dev-hub \
             --alias devhub
