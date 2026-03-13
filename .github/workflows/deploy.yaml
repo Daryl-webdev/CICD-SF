@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'force-app/**'
+      - "force-app/**"
 
 jobs:
   deploy_daryl:
@@ -12,36 +12,44 @@ jobs:
     environment: daryl
 
     steps:
-      - name: Checkout source
+      # --- Checkout ---
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
+      # --- Install Salesforce CLI ---
       - name: Install Salesforce CLI
         run: npm install @salesforce/cli --global
 
-      - name: Show CLI version
-        run: sf version
+      - name: Show sf version
+        run: sf --version
 
+      # --- Install sfdx-git-delta via npm ---
       - name: Install sfdx-git-delta
         run: |
           sudo npm install -g sfdx-git-delta
 
-          # Add global npm path
+          # Add global npm bin path
           NPM_GLOBAL=$(npm bin -g)
-          echo "Global npm bin is: $NPM_GLOBAL"
-          export PATH="$NPM_GLOBAL:$PATH"
+          echo "NPM global bin is: $NPM_GLOBAL"
+          echo "$NPM_GLOBAL" >> $GITHUB_PATH
 
-          # DEBUG: list path
-          echo "PATH: $PATH"
+          # Debug: confirm PATH
+          echo "PATH after update:"
+          echo "$PATH"
 
-          # Check if sgd is now available
-          command -v sgd || echo "sgd still not found"
+          # Debug: show where sgd is
+          command -v sgd || true
 
+      # --- Generate Delta ---
       - name: Generate delta
         run: |
-          export PATH="$(npm bin -g):$PATH"
           mkdir changed-sources
+
+          NPM_GLOBAL=$(npm bin -g)
+          export PATH="$NPM_GLOBAL:$PATH"
+
           sgd source delta \
             --from ${{ github.event.before }} \
             --to ${{ github.sha }} \
@@ -49,11 +57,14 @@ jobs:
             --generate-delta \
             --source force-app
 
+          echo "Delta generated."
 
-      - name: Authenticate Org
+      # --- Authenticate Org ---
+      - name: Authenticate Salesforce Org
         run: |
           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
           chmod 600 server.key
+
           sf org login jwt \
             --username ${{ secrets.SF_USERNAME }} \
             --jwt-key-file server.key \
@@ -62,26 +73,33 @@ jobs:
             --alias daryl \
             --set-default
 
+      # --- Detect changed Apex tests ---
       - name: Detect changed Apex tests
         id: tests
         run: |
           TESTS=$(find changed-sources -name "*Test.cls" | sed 's#.*/##' | sed 's/.cls//' | paste -sd "," -)
           echo "tests=$TESTS" >> $GITHUB_OUTPUT
 
-      - name: Deploy delta
+      # --- Deploy ---
+      - name: Deploy delta to Salesforce
         run: |
           if [ -d "changed-sources/force-app" ]; then
+            echo "Metadata changes found, deploying..."
+
             if [ -n "${{ steps.tests.outputs.tests }}" ]; then
+              echo "Running specified tests: ${{ steps.tests.outputs.tests }}"
               sf project deploy start \
                 --source-dir changed-sources/force-app \
                 --test-level RunSpecifiedTests \
                 --tests ${{ steps.tests.outputs.tests }} \
                 --wait 30
             else
+              echo "Running local tests..."
               sf project deploy start \
                 --source-dir changed-sources/force-app \
                 --test-level RunLocalTests \
                 --wait 30
             fi
           else
-            echo "No metadata changes detected"
+            echo "No metadata changes detected. Skipping deploy."
+          fi
