@@ -24,9 +24,9 @@ jobs:
         run: sf version
 
       - name: Install sfdx-git-delta
-        run: sf plugins install sfdx-git-delta
-        env:
-          SF_ACCEPT_UNSIGNED_PACKAGES: true
+        run: |
+          sudo npm install -g sfdx-git-delta
+          git fetch --all
 
       - name: Generate delta
         run: |
