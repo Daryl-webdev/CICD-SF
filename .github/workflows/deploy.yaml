@@ -42,9 +42,9 @@ jobs:
           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
           chmod 600 server.key
           sf org login jwt \
-            --username ${{ secrets.SF_USERNAME }} \
+            --username ${{ vars.SF_USERNAME }} \
             --jwt-key-file server.key \
-            --client-id ${{ secrets.SF_LEGACY_KEYSF_LEGACY_KEY }} \
+            --client-id ${{ secrets.SF_KEY }} \
             --instance-url ${{ vars.INSTANCE_URL }} \
             --alias daryl \
             --set-default
