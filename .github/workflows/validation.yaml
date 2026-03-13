@@ -6,6 +6,10 @@ on:
     paths:
       - 'force-app/**'
 
+concurrency:
+  group: pr-validation-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -35,19 +39,34 @@ jobs:
           sf org login jwt \
             --username ${{ vars.SF_USERNAME }} \
             --jwt-key-file server.key \
-            --client-id ${{ secrets.SF_KEY }} \
-            --instance-url https://login.salesforce.com
+            --client-id ${{ secrets.SF_LEGACY_KEY }} \
+            --instance-url https://orgfarm-e355f9709c-dev-ed.develop.my.salesforce-setup.com \
+            --set-default-dev-hub \
+            --alias devhub
 
       - name: Create Scratch Org
         run: |
           sf org create scratch \
             --definition-file config/project-scratch-def.json \
             --duration-days 1 \
-            --alias ci_org \
-            --set-default
+            --target-dev-hub devhub \
+            --set-default \
+            --alias ci_org
+          echo "SCRATCH_ORG_ALIAS=ci_org" >> $GITHUB_ENV
 
       - name: Push source to scratch org
         run: sf project deploy start --source-dir force-app --wait 10
 
       - name: Run Apex tests
         run: sf apex run test --test-level RunLocalTests --wait 20
+
+      - name: Delete Scratch Org
+        if: always()
+        run: |
+          echo "Attempting to delete scratch org..."
+          # Returns 0 if org exists, 1 if not
+          if sf org display --json -o $SCRATCH_ORG_ALIAS > /dev/null 2>&1; then
+            sf org delete scratch -o $SCRATCH_ORG_ALIAS -p || echo "Failed to delete scratch org"
+          else
+            echo "Scratch org not found — skipping delete."
+          fi
