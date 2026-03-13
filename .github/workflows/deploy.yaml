@@ -26,18 +26,20 @@ jobs:
       - name: Install sfdx-git-delta
         run: |
           sudo npm install -g sfdx-git-delta
-          git fetch --all
+          export PATH="$(npm bin -g):$PATH"
+          which sgd
 
       - name: Generate delta
         run: |
-          set -e
+          export PATH="$(npm bin -g):$PATH"
           mkdir changed-sources
           sgd source delta \
-            --to HEAD \
-            --from origin/main \
+            --from ${{ github.event.before }} \
+            --to ${{ github.sha }} \
             --output changed-sources \
             --generate-delta \
             --source force-app
+
 
       - name: Authenticate Org
         run: |
