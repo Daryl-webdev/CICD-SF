@@ -12,43 +12,55 @@ jobs:
     environment: daryl
 
     steps:
-      # --- Checkout ---
+      # ------------------------------
+      # Checkout
+      # ------------------------------
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # --- Install Salesforce CLI ---
+      # ------------------------------
+      # Install Salesforce CLI
+      # ------------------------------
       - name: Install Salesforce CLI
         run: npm install @salesforce/cli --global
 
       - name: Show sf version
         run: sf --version
 
-      # --- Install sfdx-git-delta via npm ---
+      # ------------------------------
+      # Install sfdx-git-delta via npm (stable / recommended)
+      # ------------------------------
       - name: Install sfdx-git-delta
         run: |
           sudo npm install -g sfdx-git-delta
 
-          # Add global npm bin path
+          # Compute global npm bin path
           NPM_GLOBAL=$(npm bin -g)
-          echo "NPM global bin is: $NPM_GLOBAL"
-          echo "$NPM_GLOBAL" >> $GITHUB_PATH
+          echo "NPM global bin: $NPM_GLOBAL"
 
-          # Debug: confirm PATH
-          echo "PATH after update:"
-          echo "$PATH"
+          # Add global npm path to PATH for this step
+          export PATH="$NPM_GLOBAL:$PATH"
 
-          # Debug: show where sgd is
-          command -v sgd || true
+          # Debug PATH
+          echo "PATH = $PATH"
 
-      # --- Generate Delta ---
+          # Verify sgd exists (does NOT fail the step)
+          command -v sgd || echo "sgd not found"
+
+      # ------------------------------
+      # Generate delta using sgd
+      # ------------------------------
       - name: Generate delta
         run: |
           mkdir changed-sources
 
+          # Re-add npm global path inside this step
           NPM_GLOBAL=$(npm bin -g)
           export PATH="$NPM_GLOBAL:$PATH"
+
+          echo "Using sgd from: $(command -v sgd || echo 'NOT FOUND')"
 
           sgd source delta \
             --from ${{ github.event.before }} \
@@ -57,9 +69,11 @@ jobs:
             --generate-delta \
             --source force-app
 
-          echo "Delta generated."
+          echo "Delta generated"
 
-      # --- Authenticate Org ---
+      # ------------------------------
+      # Authenticate org
+      # ------------------------------
       - name: Authenticate Salesforce Org
         run: |
           echo "${{ secrets.JWT_SERVER_KEY }}" > server.key
@@ -73,33 +87,40 @@ jobs:
             --alias daryl \
             --set-default
 
-      # --- Detect changed Apex tests ---
+      # ------------------------------
+      # Detect changed Apex tests
+      # ------------------------------
       - name: Detect changed Apex tests
         id: tests
         run: |
           TESTS=$(find changed-sources -name "*Test.cls" | sed 's#.*/##' | sed 's/.cls//' | paste -sd "," -)
-          echo "tests=$TESTS" >> $GITHUB_OUTPUT
+          echo "tests=$TESTS" >> "$GITHUB_OUTPUT"
+          echo "Detected tests: $TESTS"
 
-      # --- Deploy ---
-      - name: Deploy delta to Salesforce
+      # ------------------------------
+      # Deploy to Salesforce
+      # ------------------------------
+      - name: Deploy delta
         run: |
           if [ -d "changed-sources/force-app" ]; then
-            echo "Metadata changes found, deploying..."
+            echo "Metadata changes detected."
 
             if [ -n "${{ steps.tests.outputs.tests }}" ]; then
-              echo "Running specified tests: ${{ steps.tests.outputs.tests }}"
+              # Run only the tests that changed
+              echo "Running tests: ${{ steps.tests.outputs.tests }}"
               sf project deploy start \
                 --source-dir changed-sources/force-app \
                 --test-level RunSpecifiedTests \
-                --tests ${{ steps.tests.outputs.tests }} \
+                --tests "${{ steps.tests.outputs.tests }}" \
                 --wait 30
             else
-              echo "Running local tests..."
+              echo "No specific tests changed. Running local tests."
               sf project deploy start \
                 --source-dir changed-sources/force-app \
                 --test-level RunLocalTests \
                 --wait 30
             fi
           else
-            echo "No metadata changes detected. Skipping deploy."
+            echo "No metadata changes detected. Skipping deployment."
           fi
+
