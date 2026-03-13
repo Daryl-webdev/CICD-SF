@@ -26,8 +26,17 @@ jobs:
       - name: Install sfdx-git-delta
         run: |
           sudo npm install -g sfdx-git-delta
-          export PATH="$(npm bin -g):$PATH"
-          which sgd
+
+          # Add global npm path
+          NPM_GLOBAL=$(npm bin -g)
+          echo "Global npm bin is: $NPM_GLOBAL"
+          export PATH="$NPM_GLOBAL:$PATH"
+
+          # DEBUG: list path
+          echo "PATH: $PATH"
+
+          # Check if sgd is now available
+          command -v sgd || echo "sgd still not found"
 
       - name: Generate delta
         run: |
