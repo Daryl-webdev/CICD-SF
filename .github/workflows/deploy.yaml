@@ -25,6 +25,8 @@ jobs:
 
       - name: Install sfdx-git-delta
         run: sf plugins install sfdx-git-delta
+        env:
+          SF_ACCEPT_UNSIGNED_PACKAGES: true
 
       - name: Generate delta
         run: |
@@ -44,7 +46,7 @@ jobs:
           sf org login jwt \
             --username ${{ secrets.SF_USERNAME }} \
             --jwt-key-file server.key \
-            --client-id ${{ secrets.SF_LEGACY_KEYSF_LEGACY_KEY }} \
+            --client-id ${{ secrets.SF_LEGACY_KEY }} \
             --instance-url ${{ vars.INSTANCE_URL }} \
             --alias daryl \
             --set-default
